@@ -1,0 +1,11 @@
+<!-- upload_excel.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1>Upload Excel File</h1>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="file" name="excel_file" accept=".xlsx, .xls">
+    <button type="submit">Upload</button>
+  </form>
+{% endblock %}
