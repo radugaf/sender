@@ -11,7 +11,7 @@ SECRET_KEY = env(
     default="cbzPIBxPMCOXd1bz6kLj96LqF95aFVkbrwu3PbxrpiHbQ9ODLNKMZO1EhaI27fAr",
 )
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1"]
+ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1", "api.relantin.com"]
 
 # CACHES
 # ------------------------------------------------------------------------------

@@ -25,3 +25,4 @@ django-cors-headers==4.0.0  # https://github.com/adamchainz/django-cors-headers
 drf-spectacular==0.26.2  # https://github.com/tfranzel/drf-spectacular
 openpyxl==3.1.2
 django-import-export==3.2.0
+vonage==3.6.0
