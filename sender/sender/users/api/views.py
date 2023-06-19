@@ -43,7 +43,7 @@ class SenderView(APIView):
 
     def get(self, request: Request) -> Response:
         try:
-            # req = request.data.get('send_messages', False)
+            req = request.data.get('send_messages', False)
             # if req is None:
             #     return Response({'status': 'failed', 'message': 'No request data found'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -62,7 +62,7 @@ class SenderView(APIView):
                 if response_data["messages"][0]["status"] != "0":
                     return Response({'status': 'failed', 'message': f'Error: {response_data["messages"][0]["error-text"]}'}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({'status': 'success', 'message': 'Sent message'}, status=status.HTTP_200_OK)
+            return Response({'status': 'success', 'message': 'Sent message'}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'status': 'failed', 'message': f'Error: {e}'}, status=status.HTTP_400_BAD_REQUEST)
 
