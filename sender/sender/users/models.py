@@ -31,6 +31,8 @@ class Contacts(models.Model):
     from_who = models.CharField(max_length=250)
     to = models.CharField(max_length=250)
     text = models.TextField()
+    already_used = models.BooleanField(default=False)
+    failed = models.BooleanField(default=False)
 
     class Meta:
         verbose_name_plural = 'Contacts'
