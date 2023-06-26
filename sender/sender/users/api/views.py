@@ -53,6 +53,10 @@ class SenderView(APIView):
                 if contact.already_used is True:
                     continue
 
+                if contact.to.endswith(".0"):
+                    contact.to = contact.to.rstrip(".0")
+                    contact.save()
+
                 sms.send_message({
                     "from": contact.from_who,
                     "to": contact.to,
