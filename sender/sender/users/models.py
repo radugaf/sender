@@ -39,3 +39,12 @@ class Contacts(models.Model):
 
     def __str__(self) -> str:
         return self.from_who
+
+class Tokens(models.Model):
+    title = models.CharField(max_length=250)
+    token = models.CharField(max_length=250, blank=True)
+    secret = models.CharField(max_length=250, blank=True)
+    active = models.BooleanField(default=False)
+
+    def __str__(self) -> str:
+        return self.token

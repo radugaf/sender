@@ -1,7 +1,11 @@
+import json
 import logging
 from typing import OrderedDict
 
+import messagebird
+import requests
 import vonage
+from clickatell.rest import Rest
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 
@@ -16,7 +20,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 
 from sender.users.api.serializers import ContactsSerializer, UserSerializer
-from sender.users.models import Contacts
+from sender.users.models import Contacts, Tokens
 
 logger = logging.getLogger()
 from .serializers import UserSerializer
@@ -46,27 +50,97 @@ class SenderView(APIView):
     def get(self, request: Request) -> Response:
         try:
             contacts = Contacts.objects.all()
-            client = vonage.Client(key="b0bc2441", secret="VKxfdTfkP3YNMXK5")
-            sms = vonage.Sms(client)
+            tokens = Tokens.objects.filter(active=True).first()
 
-            for contact in contacts:
-                if contact.already_used is True:
-                    continue
+            if tokens is None:
+                return Response({'status': 'failed', 'message': 'No tokens found'}, status=status.HTTP_400_BAD_REQUEST)
 
-                if contact.to.endswith(".0"):
-                    contact.to = contact.to.rstrip(".0")
+            if tokens.title == 'vonage':
+                client = vonage.Client(key=tokens.token, secret=tokens.secret)
+                sms = vonage.Sms(client)
+
+                for contact in contacts:
+                    if contact.already_used is True:
+                        continue
+
+                    if contact.to.endswith(".0"):
+                        contact.to = contact.to.rstrip(".0")
+                        contact.save()
+
+                    sms.send_message({
+                        "from": contact.from_who,
+                        "to": contact.to,
+                        "text": contact.text
+                    })
+
+                    contact.already_used = True
                     contact.save()
 
-                sms.send_message({
-                    "from": contact.from_who,
-                    "to": contact.to,
-                    "text": contact.text
-                })
+            if tokens.title == 'messagebird':
+                client = messagebird.Client(tokens.token)
 
-                contact.already_used = True
-                contact.save()
+                for contact in contacts:
+                    if contact.already_used is True:
+                        continue
 
-            return Response({'status': 'success', 'message': 'Sent message'}, status=status.HTTP_200_OK)
+                    if contact.to.endswith(".0"):
+                        contact.to = contact.to.rstrip(".0")
+                        contact.save()
+
+                    client.message_create(
+                        contact.from_who,
+                        contact.to,
+                        contact.text,
+                        {'reference': 'null'}
+                    )
+
+                    contact.already_used = True
+                    contact.save()
+
+            if tokens.title == 'sinch':
+                # service plan: 1b19b8287a1f4242aa5391788bdaaaf7
+                # secret: 1b901111a2c74ec8b4068d515d57508f
+                url = f"https://sms.api.sinch.com/xms/v1/{tokens.token}/batches"
+                headers = {
+                    "Authorization": f"Bearer {tokens.secret}",
+                    "Content-Type": "application/json"
+                }
+
+                for contact in contacts:
+                    if contact.already_used is True:
+                        continue
+
+                    if contact.to.endswith(".0"):
+                        contact.to = contact.to.rstrip(".0")
+                        contact.save()
+
+                    data = {
+                        "from": "447520662136",
+                        "to": [contact.to],
+                        "body": contact.text
+                    }
+
+                    requests.post(url, headers=headers, data=json.dumps(data))
+
+                    contact.already_used = True
+                    contact.save()
+
+            if tokens.title == 'clickatell':
+                clickatell = Rest(tokens.token)
+
+                for contact in contacts:
+                    if contact.already_used is True:
+                        continue
+
+                    if contact.to.endswith(".0"):
+                        contact.to = contact.to.rstrip(".0")
+                        contact.save()
+
+                    clickatell.sendMessage([contact.to], contact.text)
+
+                    contact.already_used = True
+                    contact.save()
+
+                return Response({'status': 'success', 'message': 'Sent message'}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'status': 'failed', 'message': f'Error: {e}'}, status=status.HTTP_400_BAD_REQUEST)
-
