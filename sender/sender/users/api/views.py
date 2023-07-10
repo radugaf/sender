@@ -1,13 +1,12 @@
 import json
 import logging
-from typing import OrderedDict
 
 import messagebird
 import requests
-import vonage
+
+# import vonage
 from clickatell.rest import Rest
 from django.contrib.auth import get_user_model
-from django.db.models import Q
 
 # Django Rest Framework imports
 from rest_framework import status
@@ -22,8 +21,9 @@ from rest_framework.viewsets import GenericViewSet
 from sender.users.api.serializers import ContactsSerializer, UserSerializer
 from sender.users.models import Contacts, Tokens
 
-logger = logging.getLogger()
 from .serializers import UserSerializer
+
+logger = logging.getLogger()
 
 User = get_user_model()
 
@@ -55,26 +55,26 @@ class SenderView(APIView):
             if tokens is None:
                 return Response({'status': 'failed', 'message': 'No tokens found'}, status=status.HTTP_400_BAD_REQUEST)
 
-            if tokens.title == 'vonage':
-                client = vonage.Client(key=tokens.token, secret=tokens.secret)
-                sms = vonage.Sms(client)
+            # if tokens.title == 'vonage':
+            #     client = vonage.Client(key=tokens.token, secret=tokens.secret)
+            #     sms = vonage.Sms(client)
 
-                for contact in contacts:
-                    if contact.already_used is True:
-                        continue
+            #     for contact in contacts:
+            #         if contact.already_used is True:
+            #             continue
 
-                    if contact.to.endswith(".0"):
-                        contact.to = contact.to.rstrip(".0")
-                        contact.save()
+            #         if contact.to.endswith(".0"):
+            #             contact.to = contact.to.rstrip(".0")
+            #             contact.save()
 
-                    sms.send_message({
-                        "from": contact.from_who,
-                        "to": contact.to,
-                        "text": contact.text
-                    })
+            #         sms.send_message({
+            #             "from": contact.from_who,
+            #             "to": contact.to,
+            #             "text": contact.text
+            #         })
 
-                    contact.already_used = True
-                    contact.save()
+            #         contact.already_used = True
+            #         contact.save()
 
             if tokens.title == 'messagebird':
                 client = messagebird.Client(tokens.token)
